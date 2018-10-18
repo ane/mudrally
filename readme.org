@@ -7,7 +7,9 @@ The first step is to see how fennel works as a standalone execution environment,
 This repo contains the minimal viable setup to get started with Phil Hegelberg's game design process, plus some additional libraries.
 
 * Phil's Modal Callbacks (PMC)
-You can imagine that your game is a series of states in a very simple state machine. For example, most games will progress from *start-screen* to *play* to *end*, with unidirectional progression. In each state we will need certain actions that are state specific (and specific to the callback system that love uses). In order to have state dependant rendering we will need a *draw callback* for each state. Similarly if we need state dependent logic and keyboard input we will need *update and keyboard callbacks*. Based on the complexity of your game you can include more states and more callbacks. This architecture provides a very modular way to set out your code. So long as state progression is simple, you should be able to add states and remove easily as you iterate on your game.
+Phil Hegelberg's [[https://gitlab.com/technomancy/exo-encounter-667/][exo-encounter-667]] is structured using a modal callback system. Each game state has a mode and each mode has a serise of specific callbacks. 
+
+If you design your game as a series of states in a very simple state machine, for example *start-screen*, *play* and *end*, with unidirectional progression, you can easily seperate the logic for each state into state/mode specific callbacks. As an example, in order to have state dependant rendering that differs between start-screen,play and end you could provide a *draw* callback for each of those states. Similarly if we need state dependent logic and keyboard input we could provide *update* and *keyboard* callbacks. As you iterate you can add and remove callbacks and states/modes as needed with very little friction.
 
 
 * Emacs Setup
