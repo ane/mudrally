@@ -1,0 +1,38 @@
+* Minimal Fennel Love2D Setup
+
+In a lead up to the annual [[https://itch.io/jam/autumn-lisp-game-jam-2018][Autumn Lisp Game Jam]] I thought I'd look into Phil Hegelberg's approach to last Aprils Jam, using [[https://love2d.org/][love2d]] in concert with [[https://fennel-lang.org/][fennel]]. Phil outlines his approach on his [[https://love2d.org/][blog]].
+
+The first step is to see how fennel works as a standalone execution environment, then slowly integrate some of the love2d API.
+
+This repo contains the minimal viable setup to get started with Phil Hegelberg's game design process, plus some additional libraries.
+
+* Phil's Modal Callbacks (PMC)
+You can imagine that your game is a series of states in a very simple state machine. For example, most games will progress from *start-screen* to *play* to *end*, with unidirectional progression. In each state we will need certain actions that are state specific (and specific to the callback system that love uses). In order to have state dependant rendering we will need a *draw callback* for each state. Similarly if we need state dependent logic and keyboard input we will need *update and keyboard callbacks*. Based on the complexity of your game you can include more states and more callbacks. This architecture provides a very modular way to set out your code. So long as state progression is simple, you should be able to add states and remove easily as you iterate on your game.
+
+
+* Emacs Setup
+
+#+BEGIN_SRC emacs-lisp
+(autoload 'fennel-mode "/path/to/fennel-mode" nil t)
+(require 'fennel-mode)
+
+;; By default fennel-mode moves focus to the \*inferior-lisp\* buffer
+;; setting `fennel-mode-switch-to-repl-after-reload' to nil prevents this
+(customize-save-variable 'fennel-mode-switch-to-repl-after-reload nil)
+
+(add-to-list 'auto-mode-alist '("\\.fnl\\'" . fennel-mode))
+
+;; you can bind this to whatever you like
+(defun run-love ()
+  (interactive)
+  (run-lisp "love ."))
+
+;; for some reason when I load a fnl file it starts the slime minor mode
+;; I have included the hook below to prevent this
+(defun fennel-mode-hook-fun ()
+  (interactive)
+  (slime-mode nil))
+
+(add-hook 'fennel-mode-hook 'fennel-mode-hook-fun)
+#+END_SRC 
+

@@ -1,0 +1,4 @@
+* 2018-10-16 Alexander Griffith <griffitaj@gmail.com>
+  - Updated love version in love-release.sh to 11.1
+  - Added libs fennelview, lume & stdio
+
