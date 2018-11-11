@@ -1,22 +1,51 @@
 require("love.event")
+local fennel = require("lib.fennel")
 local view = require("lib.fennelview")
 local event, channel = ...
+local function display(s)
+  io.write(s)
+  return io.flush()
+end
+do local _ = display end
+local function prompt()
+  return display("\n>> ")
+end
+do local _ = prompt end
+local function read_chunk()
+  local input = io.read()
+  if input then
+    return (input .. "\n")
+  end
+end
+do local _ = read_chunk end
+local input = ""
 local function _0_(...)
   if channel then
+    local bytestream, clearstream = fennel.granulate(read_chunk)
     local function _0_()
-      io.write("> ")
-      io.flush()
-      return io.read("*l")
+      local c = (bytestream() or 10)
+      input = (input .. string.char(c))
+      return c
     end
-    local prompt = _0_
-    local function looper(input)
-      if input then
-        love.event.push(event, input)
-        print(channel:demand())
-        return looper(prompt())
+    local read = fennel.parser(_0_)
+    while true do
+      prompt()
+      input = ""
+      do
+        local ok, ast = read()
+        local function _1_(...)
+          if not ok then
+            display(("Error:" .. view(ast) .. "\n"))
+            return clearstream()
+          else
+            love.event.push(event, input)
+            return display(channel:demand())
+          end
+        end
+        _1_(...)
       end
     end
-    return looper(prompt())
+    return nil
   end
 end
 _0_(...)
@@ -47,4 +76,4 @@ local function start_repl()
   love.handlers.eval = _2_
   return nil
 end
-return ({start = start_repl})
+return {start = start_repl}

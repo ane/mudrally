@@ -1,4 +1,5 @@
 (require "love.event")
+(local fennel (require "lib.fennel"))
 (local view (require "lib.fennelview"))
 
 ;; This module exists in order to expose stdio over a channel so that it
@@ -6,14 +7,37 @@
 
 (local (event channel) ...)
 
+(defn display [s]
+  (io.write s)
+  (io.flush))
+
+(defn prompt []
+  (display "\n>> "))
+
+(defn read-chunk []
+  (let [input (io.read)]
+    (when input
+      (.. input "\n"))))
+
+(var input "")
 (when channel
-  (let [prompt (fn [] (io.write "> ") (io.flush) (io.read "*l"))]
-    ((fn looper [input]
-       (when input
-         ;; This is consumed by love.handlers[event]
-         (love.event.push event input)
-         (print (: channel :demand))
-         (looper (prompt)))) (prompt))))
+  (let [(bytestream clearstream) (fennel.granulate read-chunk)
+        read (fennel.parser
+              (fn []
+                (let [c (or (bytestream) 10)]
+                  (set input (.. input (string.char c)))
+                  c)))]
+    (while true
+      (prompt)
+      (set input "")
+      (let [(ok ast) (read)]
+        (if (not ok)
+            (do
+              (display (.. "Error:" (view ast) "\n"))
+              (clearstream))
+            (do
+              (love.event.push event input)
+              (display (: channel :demand))))))))
 
 {:start (fn start-repl []
           (let [code (love.filesystem.read "stdio.fnl")
