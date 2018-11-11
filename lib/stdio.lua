@@ -32,11 +32,10 @@ local function _0_(...)
       prompt()
       input = ""
       do
-        local ok, ast = read()
+        local ok, ast = pcall(read)
         local function _1_(...)
           if not ok then
-            display(("Error:" .. view(ast) .. "\n"))
-            return clearstream()
+            return display(("Parse error:" .. ast .. "\n"))
           else
             love.event.push(event, input)
             return display(channel:demand())

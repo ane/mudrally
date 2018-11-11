@@ -30,11 +30,13 @@
     (while true
       (prompt)
       (set input "")
-      (let [(ok ast) (read)]
+      (let [(ok ast) (pcall read)]
         (if (not ok)
             (do
-              (display (.. "Error:" (view ast) "\n"))
-              (clearstream))
+              (display (.. "Parse error:" ast "\n"))
+              ;; fixme: not sure why the following fails
+              ;; (clearstream)
+              )
             (do
               (love.event.push event input)
               (display (: channel :demand))))))))
