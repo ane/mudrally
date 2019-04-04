@@ -3,55 +3,104 @@
 local fennel_dir = arg[0]:match("(.-)[^\\/]+$")
 package.path = fennel_dir .. "?.lua;" .. package.path
 local fennel = require('fennel')
+local unpack = unpack or table.unpack
 
 local help = [[
 Usage: fennel [FLAG] [FILE]
 
-  --repl          :  Launch an interactive repl session
-  --compile FILES :  Compile files and write their Lua to stdout
-  --help          :  Display this text
+Run fennel, a lisp programming language for the Lua runtime.
 
-  When not given a flag, runs the file given as the first argument.]]
+  --repl                  : Launch an interactive repl session
+  --compile FILES         : Compile files and write their Lua to stdout
+
+  --no-searcher           : Skip installing package.searchers entry
+  --indent VAL            : Indent compiler output with VAL
+  --add-package-path PATH : Add PATH to package.path for finding Lua modules
+  --add-fennel-path  PATH : Add PATH to fennel.path for finding Fennel modules
+
+  --help                  : Display this text
+  --version               : Show version
+
+  When not given a flag, runs the file given as the first argument.
+  When given neither flag nor file, launches a repl.
+
+  If ~/.fennelrc exists, loads it before launching a repl.]]
 
 local options = {
-    sourcemap = true,
+    sourcemap = true
 }
 
-local function dosafe(filename, opts, arg1)
+local function dosafe(filename, opts, args)
     local ok, val = xpcall(function()
-        return fennel.dofile(filename, opts, arg1)
+        return fennel.dofile(filename, opts, unpack(args))
     end, fennel.traceback)
     if not ok then
-        print(val)
+        io.stderr:write(val .. "\n")
         os.exit(1)
     end
     return val
 end
 
-local compileOptHandlers = {
-    ['--indent'] = function ()
-        options.indent = table.remove(arg, 3)
+for i=#arg, 1, -1 do
+    if arg[i] == "--no-searcher" then
+        options.no_searcher = true
+        table.remove(arg, i)
+    elseif arg[i] == "--indent" then
+        options.indent = table.remove(arg, i+1)
         if options.indent == "false" then options.indent = false end
-        table.remove(arg, 2)
-    end,
-    ['--sourcemap'] = function ()
-        options.sourcemap = table.remove(arg, 3)
+        table.remove(arg, i)
+    elseif arg[i] == "--add-package-path" then
+        local entry = table.remove(arg, i+1)
+        package.path = entry .. ";" .. package.path
+        table.remove(arg, i)
+    elseif arg[i] == "--add-fennel-path" then
+        local entry = table.remove(arg, i+1)
+        fennel.path = entry .. ";" .. fennel.path
+        table.remove(arg, i)
+    elseif arg[i] == "--sourcemap" then
+        options.sourcemap = table.remove(arg, i+1)
         if options.sourcemap == "false" then options.sourcemap = false end
-        table.remove(arg, 2)
-    end,
-    ['--correlate'] = function ()
-        options.correlate = true
-        table.remove(arg, 2)
-    end,
-}
+        table.remove(arg, i)
+    end
+end
+
+if not options.no_searcher then
+    table.insert((package.loaders or package.searchers),
+        fennel.make_searcher({correlate = true}))
+end
+
+-- Try to load readline library
+local function tryReadline(opts)
+    local ok, readline = pcall(require, "readline")
+    if ok then
+        readline.set_options({
+            keeplines = 1000
+        })
+        function opts.readChunk(parserState)
+            local prompt = parserState.stackSize > 0 and '.. ' or '>> '
+            local str = readline.readline(prompt)
+            if str then
+                return str .. "\n"
+            end
+        end
+    end
+end
 
 if arg[1] == "--repl" or #arg == 0 then
     local ppok, pp = pcall(fennel.dofile, fennel_dir .. "fennelview.fnl", options)
     if ppok then
         options.pp = pp
+    else
+        ppok, pp = pcall(require, "fennelview")
+        if ppok then
+            options.pp = pp
+        end
     end
     local initFilename = (os.getenv("HOME") or "") .. "/.fennelrc"
     local init = io.open(initFilename, "rb")
+
+    tryReadline(options)
+
     if init then
         init:close()
         -- pass in options so fennerlrc can make changes to it
@@ -60,23 +109,25 @@ if arg[1] == "--repl" or #arg == 0 then
     print("Welcome to fennel!")
     fennel.repl(options)
 elseif arg[1] == "--compile" then
-    -- Handle options
-    while compileOptHandlers[arg[2]] do
-        compileOptHandlers[arg[2]]()
-    end
     for i = 2, #arg do
-        local f = assert(io.open(arg[i], "rb"))
+        local f = arg[i] == "-" and io.stdin or assert(io.open(arg[i], "rb"))
         options.filename=arg[i]
         local ok, val = xpcall(function()
             return fennel.compileString(f:read("*all"), options)
         end, fennel.traceback)
-        print(val)
-        if not ok then os.exit(1) end
+        if ok then
+            print(val)
+        else
+            io.stderr:write(val .. "\n")
+            os.exit(1)
+        end
         f:close()
     end
+elseif arg[1] == "--version" or arg[1] == "-v" then
+    print("Fennel " .. fennel.version)
 elseif #arg >= 1 and arg[1] ~= "--help" then
     local filename = table.remove(arg, 1) -- let the script have remaining args
-    dosafe(filename)
+    dosafe(filename, nil, arg)
 else
     print(help)
 end
