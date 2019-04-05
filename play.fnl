@@ -1,28 +1,35 @@
 (local tiled (require "lib.tiled"))
 (local bump (require "lib.bump"))
 
+(global bf (require "breezefield"))
+
 (local map (tiled "map.lua" ["box2d"]))
-(local world (bump.newWorld))
 (local falcon (love.graphics.newImage "assets/falcon.png"))
 (global xyz (require :text))
-
-(: map :box2d_init world)
 
 (var counter 0)
 (var time 0)
 (var joo true)
 (local speed 10)
-(local coord {:x 0 :y 200})
+
+(global world (bf.newWorld 0 90.81 true))
+
+(: map :box2d_init world._world)
 
 (local player1 {:theta 0 :x 50 :y 50 :steer 0})
 
+;; (: map :box2d_init world._world)
+(global ground (bf.Collider.new world "Polygon" [0, 200, 320, 210, 200, 150, 0, 140]))
+(: ground :setType "static")
+(global ball (bf.Collider.new world "Circle" 50 50 20))
+
+(: ball :setRestitution 0.8)
+
 {:draw (fn draw [message]
-         (let [{:x y :y y} coord]
-           (: map :draw 0 0)
-           (xyz.outline "KAKKA!!!" 100 100)
-           (when joo
-             (love.graphics.print (string.format "theta: %f steer: %f" player1.theta player1.steer) 1 1)
-             (love.graphics.draw falcon player1.x player1.y player1.theta 1 1 8 8))))
+         (: map :draw 0 0)
+         (xyz.outline "kakka" 100 100)
+         (: world :draw)
+         (: map :box2d_draw 0 0 1 1))
  
  :update (fn update [dt set-mode]
            (if (love.keyboard.isDown "right")
@@ -54,6 +61,7 @@
                      new-y (+ y (* (math.sin theta) 1 delta))]
                  (set player1.x new-x)
                  (set player1.y new-y))))
+           (: world :update dt)
            true)
  :keypressed (fn keypressed [key set-mode]
                (if (= key "k")
