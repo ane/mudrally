@@ -1,40 +1,35 @@
-* Minimal Fennel Love2D Setup
+* Mud Rally
 
-In a lead up to the annual [[https://itch.io/jam/autumn-lisp-game-jam-2018][Autumn Lisp Game Jam]] I thought I'd look into Phil Hegelberg's approach to last Aprils Jam, using [[https://love2d.org/][love2d]] in concert with [[https://fennel-lang.org/][fennel]]. Phil outlines his approach on his [[https://love2d.org/][blog]].
+Mud Rally is a retro style 320x240 [[https://en.wikipedia.org/wiki/Demolition_derby][demolition derby]] racing game built using [[https://love2d.org/][LÖVE]]
+and written in [[http://wwww.fennel-lang.org][Fennel]].
 
-The first step is to see how fennel works as a standalone execution environment, then slowly integrate some of the love2d API.
+It is under development, and there are no screenshots, so don't try it, and
+don't send me any questions!
 
-This repo contains the minimal viable setup to get started with Phil Hegelberg's game design process, plus some additional libraries.
+To curious the wanderers that have somehow ended up here wanting to try it
+anyway, clone the repo, install LÖVE, and run `love .` in the root
+directory. You can do absolutely nothing of interest yet.
 
-* Phil's Modal Callbacks (PMC)
-Phil Hegelberg's [[https://gitlab.com/technomancy/exo-encounter-667/][exo-encounter-667]] is structured using a modal callback system. Each game state has a mode and each mode has a series of specific callbacks. 
+This project is based on the glorious [[https://gitlab.com/alexjgriffith/min-love2d-fennel][Minimal Fennel Love2D setup]] by Alexander
+Griffith, which is orignally based on Phil Hagelberg's [[https://gitlab.com/technomancy/exo-encounter-667/][exo-encounter-667]] game.
 
-If you design your game as a series of states in a very simple state machine, for example *start-screen*, *play* and *end*, with unidirectional progression, you can easily separate the logic for each state into state/mode specific callbacks. As an example, in order to have state dependant rendering that differs between start-screen,play and end you could provide a *draw* callback for each of those states. Similarly if we need state dependent logic and keyboard input we could provide *update* and *keyboard* callbacks. As you iterate you can add and remove callbacks and states/modes as needed with very little friction.
+** Trivia
+
+I began working on this game in 1999 or so, and began working on it after a long
+while.
+
+** Attributions
+
+This game has used or is currently using these wonderful tools:
+
+- [[http://www.love2d.org][LÖVE]] for the game framework
+- [[https://www.mapeditor.org/][Tiled]] and [[https://github.com/karai17/Simple-Tiled-Implementation][STI]] for map tiles
+- [[https://github.com/HDictus/breezefield][breezefield]] for physics
+
+... and several other libraries such as [[https://github.com/rxi/lume][Lume]].
 
 
-* Emacs Setup
+*** Art & Tilesets 
 
-#+BEGIN_SRC emacs-lisp
-(autoload 'fennel-mode "/path/to/fennel-mode" nil t)
-(require 'fennel-mode)
-
-;; By default fennel-mode moves focus to the \*inferior-lisp\* buffer
-;; setting `fennel-mode-switch-to-repl-after-reload' to nil prevents this
-(customize-save-variable 'fennel-mode-switch-to-repl-after-reload nil)
-
-(add-to-list 'auto-mode-alist '("\\.fnl\\'" . fennel-mode))
-
-;; you can bind this to whatever you like
-(defun run-love ()
-  (interactive)
-  (run-lisp "love ."))
-
-;; for some reason when I load a fnl file it starts the slime minor mode
-;; I have included the hook below to prevent this
-(defun fennel-mode-hook-fun ()
-  (interactive)
-  (slime-mode nil))
-
-(add-hook 'fennel-mode-hook 'fennel-mode-hook-fun)
-#+END_SRC 
+- The current tileset is [[https://opengameart.org/content/consolidated-hard-vacuum-terrain-tilesets][Hard Vacuum]] by Daniel Cook ([[http://lostgarden.com][lostgarden.com]])
 
