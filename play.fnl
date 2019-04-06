@@ -21,13 +21,17 @@
 ;; (: map :box2d_init world._world)
 (global ground (bf.Collider.new world "Polygon" [0, 200, 320, 210, 200, 150, 0, 140]))
 (: ground :setType "static")
-(global ball (bf.Collider.new world "Circle" 50 50 20))
+(global ball (bf.Collider.new world "Circle" 50 50 5))
+(global b (bf.Collider.new world "Circle" 100 50 5))
+(global c (bf.Collider.new world "Circle" 200 50 5))
 
 (: ball :setRestitution 0.8)
+(: b :setRestitution 0.8)
+(: c :setRestitution 0.8)
 
 {:draw (fn draw [message]
          (: map :draw 0 0)
-         (xyz.outline "kakka" 100 100)
+         ;; (xyz.outline "kakka" 100 100)
          (: world :draw)
          (: map :box2d_draw 0 0 1 1))
  

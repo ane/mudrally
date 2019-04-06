@@ -8,8 +8,8 @@ return {
   height = 12,
   tilewidth = 20,
   tileheight = 20,
-  nextlayerid = 10,
-  nextobjectid = 5,
+  nextlayerid = 11,
+  nextobjectid = 7,
   properties = {
     ["collidable"] = true
   },
@@ -47,7 +47,7 @@ return {
       tilecount = 1248,
       tiles = {
         {
-          id = 256,
+          id = 196,
           objectGroup = {
             type = "objectgroup",
             name = "",
@@ -61,6 +61,36 @@ return {
               {
                 id = 1,
                 name = "",
+                type = "",
+                shape = "rectangle",
+                x = 5.0353,
+                y = 5.0353,
+                width = 10,
+                height = 10,
+                rotation = 0,
+                visible = true,
+                properties = {
+                  ["collidable"] = true
+                }
+              }
+            }
+          }
+        },
+        {
+          id = 256,
+          objectGroup = {
+            type = "objectgroup",
+            name = "",
+            visible = true,
+            opacity = 1,
+            offsetx = 0,
+            offsety = 0,
+            draworder = "index",
+            properties = {},
+            objects = {
+              {
+                id = 1,
+                name = "a",
                 type = "",
                 shape = "polygon",
                 x = 0.33723,
@@ -76,7 +106,9 @@ return {
                   { x = 15.5126, y = -14.0513 },
                   { x = 0, y = -14.0513 }
                 },
-                properties = {}
+                properties = {
+                  ["collidable"] = true
+                }
               }
             }
           }
@@ -95,14 +127,14 @@ return {
             objects = {
               {
                 id = 1,
-                name = "",
+                name = "b",
                 type = "",
                 shape = "polygon",
-                x = 7.08183,
-                y = -0.11241,
+                x = 4.3353,
+                y = 2.06193,
                 width = 0,
                 height = 0,
-                rotation = 0,
+                rotation = -50,
                 visible = true,
                 polygon = {
                   { x = 0, y = 0 },
@@ -110,10 +142,12 @@ return {
                   { x = 3.14748, y = 8.43076 },
                   { x = 5.95773, y = 10.9038 },
                   { x = 9.89209, y = 14.0513 },
-                  { x = 13.3768, y = 14.8381 },
+                  { x = 13.0335, y = 14.7237 },
                   { x = 13.152, y = 0.56205 }
                 },
-                properties = {}
+                properties = {
+                  ["collidable"] = true
+                }
               }
             }
           }
@@ -132,11 +166,11 @@ return {
             objects = {
               {
                 id = 1,
-                name = "kakka",
+                name = "c",
                 type = "",
                 shape = "polygon",
-                x = 10,
-                y = 13.5395,
+                x = 0,
+                y = 14,
                 width = 0,
                 height = 0,
                 rotation = 0,
@@ -170,25 +204,52 @@ return {
             objects = {
               {
                 id = 1,
-                name = "pieru",
+                name = "d",
                 type = "",
                 shape = "polygon",
-                x = 7.08183,
-                y = 19.7842,
+                x = 5.85698,
+                y = 19.8529,
                 width = 0,
                 height = 0,
                 rotation = 0,
                 visible = true,
                 polygon = {
                   { x = 0, y = 0 },
-                  { x = 2.69784, y = -4.72122 },
-                  { x = 5.50809, y = -9.66727 },
-                  { x = 7.30665, y = -12.5899 },
-                  { x = 12.5899, y = -15.0629 },
-                  { x = 12.8147, y = -5.05845 },
-                  { x = 8.99281, y = -0.67446 },
-                  { x = 8.65558, y = 0 }
+                  { x = 6.38944, y = -9.81235 },
+                  { x = 13.3113, y = -15.5933 },
+                  { x = 14.148, y = -5.40059 },
+                  { x = 10.1166, y = -0.152129 }
                 },
+                properties = {
+                  ["collidable"] = true
+                }
+              }
+            }
+          }
+        },
+        {
+          id = 392,
+          objectGroup = {
+            type = "objectgroup",
+            name = "",
+            visible = true,
+            opacity = 1,
+            offsetx = 0,
+            offsety = 0,
+            draworder = "index",
+            properties = {},
+            objects = {
+              {
+                id = 1,
+                name = "PALLI",
+                type = "",
+                shape = "ellipse",
+                x = 4.11979,
+                y = 1.94546,
+                width = 10,
+                height = 10,
+                rotation = 0,
+                visible = true,
                 properties = {
                   ["collidable"] = true
                 }
@@ -221,8 +282,8 @@ return {
         194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
         194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
         194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
-        194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
-        194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
+        194, 393, 194, 194, 194, 194, 290, 194, 289, 194, 258, 194, 257, 194, 194, 194,
+        194, 194, 197, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
         194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
         194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
         194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194, 194,
@@ -230,63 +291,37 @@ return {
       }
     },
     {
-      type = "tilelayer",
-      id = 2,
-      name = "Blockers",
-      x = 0,
-      y = 0,
-      width = 16,
-      height = 12,
+      type = "objectgroup",
+      id = 10,
+      name = "spott",
       visible = true,
       opacity = 1,
       offsetx = 0,
       offsety = 0,
-      properties = {
-        ["collidable"] = true
-      },
-      encoding = "lua",
-      data = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 399, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-      }
-    },
-    {
-      type = "tilelayer",
-      id = 9,
-      name = "Tile Layer 3",
-      x = 0,
-      y = 0,
-      width = 16,
-      height = 12,
-      visible = true,
-      opacity = 1,
-      offsetx = 0,
-      offsety = 0,
+      draworder = "topdown",
       properties = {},
-      encoding = "lua",
-      data = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 290, 289, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      objects = {
+        {
+          id = 6,
+          name = "bum bam",
+          type = "",
+          shape = "polygon",
+          x = 279.572,
+          y = 20.8083,
+          width = 0,
+          height = 0,
+          rotation = 0,
+          visible = true,
+          polygon = {
+            { x = 0, y = 0 },
+            { x = -31.5687, y = 52.0405 },
+            { x = 0.573976, y = 88.3923 },
+            { x = 20.2805, y = 63.52 }
+          },
+          properties = {
+            ["collidable"] = true
+          }
+        }
       }
     }
   }

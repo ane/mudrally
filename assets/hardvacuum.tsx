@@ -4,23 +4,38 @@
  <terraintypes>
   <terrain name="Grass" tile="193"/>
  </terraintypes>
+ <tile id="196">
+  <objectgroup draworder="index">
+   <object id="1" x="5.0353" y="5.0353" width="10" height="10">
+    <properties>
+     <property name="collidable" type="bool" value="true"/>
+    </properties>
+   </object>
+  </objectgroup>
+ </tile>
  <tile id="256">
   <objectgroup draworder="index">
-   <object id="1" x="0.33723" y="14.2761">
+   <object id="1" name="a" x="0.33723" y="14.2761">
+    <properties>
+     <property name="collidable" type="bool" value="true"/>
+    </properties>
     <polygon points="0,0 7.64388,-2.47302 13.4892,-7.19424 15.5126,-14.0513 0,-14.0513"/>
    </object>
   </objectgroup>
  </tile>
  <tile id="257">
   <objectgroup draworder="index">
-   <object id="1" x="7.08183" y="-0.11241">
-    <polygon points="0,0 2.02338,6.7446 3.14748,8.43076 5.95773,10.9038 9.89209,14.0513 13.3768,14.8381 13.152,0.56205"/>
+   <object id="1" name="b" x="7.08183" y="-0.11241" rotation="-1">
+    <properties>
+     <property name="collidable" type="bool" value="true"/>
+    </properties>
+    <polygon points="0,0 2.02338,6.7446 3.14748,8.43076 5.95773,10.9038 9.89209,14.0513 13.0335,14.7237 13.152,0.56205"/>
    </object>
   </objectgroup>
  </tile>
  <tile id="288">
   <objectgroup draworder="index">
-   <object id="1" name="kakka" x="10" y="13.5395">
+   <object id="1" name="c" x="0" y="14">
     <properties>
      <property name="collidable" type="bool" value="true"/>
     </properties>
@@ -30,11 +45,21 @@
  </tile>
  <tile id="289">
   <objectgroup draworder="index">
-   <object id="1" name="pieru" x="7.08183" y="19.7842">
+   <object id="1" name="d" x="5.85698" y="19.8529">
     <properties>
      <property name="collidable" type="bool" value="true"/>
     </properties>
-    <polygon points="0,0 2.69784,-4.72122 5.50809,-9.66727 7.30665,-12.5899 12.5899,-15.0629 12.8147,-5.05845 8.99281,-0.67446 8.65558,0"/>
+    <polygon points="0,0 6.38944,-9.81235 13.3113,-15.5933 14.148,-5.40059 10.1166,-0.152129"/>
+   </object>
+  </objectgroup>
+ </tile>
+ <tile id="392">
+  <objectgroup draworder="index">
+   <object id="1" name="PALLI" x="4.11979" y="1.94546" width="10" height="10">
+    <properties>
+     <property name="collidable" type="bool" value="true"/>
+    </properties>
+    <ellipse/>
    </object>
   </objectgroup>
  </tile>

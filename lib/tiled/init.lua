@@ -1,23 +1,25 @@
 --- Simple and fast Tiled map loader and renderer.
 -- @module sti
 -- @author Landon Manning
--- @copyright 2016
+-- @copyright 2019
 -- @license MIT/X11
 
 local STI = {
 	_LICENSE     = "MIT/X11",
 	_URL         = "https://github.com/karai17/Simple-Tiled-Implementation",
-	_VERSION     = "0.18.2.1",
+	_VERSION     = "1.2.3.0",
 	_DESCRIPTION = "Simple Tiled Implementation is a Tiled Map Editor library designed for the *awesome* LÖVE framework.",
 	cache        = {}
 }
 STI.__index = STI
 
+local love  = _G.love
 local cwd   = (...):gsub('%.init$', '') .. "."
 local utils = require(cwd .. "utils")
 local ceil  = math.ceil
 local floor = math.floor
 local lg    = require(cwd .. "graphics")
+local inspect = require("inspect")
 local Map   = {}
 Map.__index = Map
 
@@ -112,9 +114,40 @@ function Map:init(path, plugins, ox, oy)
 		gid = self:setTiles(i, tileset, gid)
 	end
 
+	local layers = {}
+	for _, layer in ipairs(self.layers) do
+		self:groupAppendToList(layers, layer)
+	end
+	self.layers = layers
+
 	-- Set layers
 	for _, layer in ipairs(self.layers) do
 		self:setLayer(layer, path)
+	end
+end
+
+--- Layers from the group are added to the list
+-- @param layers List of layers
+-- @param layer Layer data
+function Map:groupAppendToList(layers, layer)
+	if layer.type == "group" then
+		for _, groupLayer in pairs(layer.layers) do
+			groupLayer.name = layer.name .. "." .. groupLayer.name
+			groupLayer.visible = layer.visible
+			groupLayer.opacity = layer.opacity * groupLayer.opacity
+			groupLayer.offsetx = layer.offsetx + groupLayer.offsetx
+			groupLayer.offsety = layer.offsety + groupLayer.offsety
+
+			for key, property in pairs(layer.properties) do
+				if groupLayer.properties[key] == nil then
+					groupLayer.properties[key] = property
+				end
+			end
+
+			self:groupAppendToList(layers, groupLayer)
+		end
+	else
+		table.insert(layers, layer)
 	end
 end
 
@@ -265,6 +298,13 @@ end
 --- Add Tiles to Tile Layer
 -- @param layer The Tile Layer
 function Map:setTileData(layer)
+	if layer.chunks then
+		for _, chunk in ipairs(layer.chunks) do
+			self:setTileData(chunk)
+		end
+		return
+	end
+
 	local i   = 1
 	local map = {}
 
@@ -273,6 +313,7 @@ function Map:setTileData(layer)
 		for x = 1, layer.width do
 			local gid = layer.data[i]
 
+			-- NOTE: Empty tiles have a GID of 0
 			if gid > 0 then
 				map[y][x] = self.tiles[gid] or self:setFlippedGID(gid)
 			end
@@ -301,9 +342,8 @@ function Map:setObjectCoordinates(layer)
 		local y   = layer.y + object.y
 		local w   = object.width
 		local h   = object.height
-		local r   = object.rotation
-		local cos = math.cos(math.rad(r))
-		local sin = math.sin(math.rad(r))
+		local cos = math.cos(math.rad(object.rotation))
+		local sin = math.sin(math.rad(object.rotation))
 
 		if object.shape == "rectangle" and not object.gid then
 			object.rectangle = {}
@@ -351,8 +391,8 @@ end
 -- @return number Tile instance location on X axis (in pixels)
 -- @return number Tile instance location on Y axis (in pixels)
 function Map:getLayerTilePosition(layer, tile, x, y)
-	local tileW    = self.tilewidth
-	local tileH    = self.tileheight
+	local tileW = self.tilewidth
+	local tileH = self.tileheight
 	local tileX, tileY
 
 	if self.orientation == "orthogonal" then
@@ -407,21 +447,32 @@ end
 
 --- Place new tile instance
 -- @param layer Tile layer
+-- @param chunk Layer chunk
 -- @param tile Tile
 -- @param number Tile location on X axis (in tiles)
 -- @param number Tile location on Y axis (in tiles)
-function Map:addNewLayerTile(layer, tile, x, y)
+function Map:addNewLayerTile(layer, chunk, tile, x, y)
 	local tileset = tile.tileset
 	local image   = self.tilesets[tile.tileset].image
+	local batches
+	local size
 
-	layer.batches[tileset] = layer.batches[tileset]
-		or lg.newSpriteBatch(image, layer.width * layer.height)
+	if chunk then
+		batches = chunk.batches
+		size    = chunk.width * chunk.height
+	else
+		batches = layer.batches
+		size    = layer.width * layer.height
+	end
 
-	local batch = layer.batches[tileset]
+	batches[tileset] = batches[tileset] or lg.newSpriteBatch(image, size)
+
+	local batch = batches[tileset]
 	local tileX, tileY = self:getLayerTilePosition(layer, tile, x, y)
 
-	local tab = {
+	local instance = {
 		layer = layer,
+		chunk = chunk,
 		gid   = tile.gid,
 		x     = tileX,
 		y     = tileY,
@@ -429,36 +480,37 @@ function Map:addNewLayerTile(layer, tile, x, y)
 		oy    = 0
 	}
 
+	-- NOTE: STI can run headless so it is not guaranteed that a batch exists.
 	if batch then
-		tab.batch = batch
-		tab.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
+		instance.batch = batch
+		instance.id = batch:add(tile.quad, tileX, tileY, tile.r, tile.sx, tile.sy)
 	end
 
 	self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-	table.insert(self.tileInstances[tile.gid], tab)
+	table.insert(self.tileInstances[tile.gid], instance)
 end
 
---- Batch Tiles in Tile Layer for improved draw speed
--- @param layer The Tile Layer
-function Map:setSpriteBatches(layer)
-	layer.batches  = {}
+function Map:set_batches(layer, chunk)
+	if chunk then
+		chunk.batches = {}
+	else
+		layer.batches = {}
+	end
 
 	if self.orientation == "orthogonal" or self.orientation == "isometric" then
 		local startX     = 1
 		local startY     = 1
-		local endX       = layer.width
-		local endY       = layer.height
+		local endX       = chunk and chunk.width  or layer.width
+		local endY       = chunk and chunk.height or layer.height
 		local incrementX = 1
 		local incrementY = 1
 
 		-- Determine order to add tiles to sprite batch
 		-- Defaults to right-down
 		if self.renderorder == "right-up" then
-			startX, endX, incrementX = startX, endX,  1
 			startY, endY, incrementY = endY, startY, -1
 		elseif self.renderorder == "left-down" then
 			startX, endX, incrementX = endX, startX, -1
-			startY, endY, incrementY = startY, endY,  1
 		elseif self.renderorder == "left-up" then
 			startX, endX, incrementX = endX, startX, -1
 			startY, endY, incrementY = endY, startY, -1
@@ -466,23 +518,33 @@ function Map:setSpriteBatches(layer)
 
 		for y = startY, endY, incrementY do
 			for x = startX, endX, incrementX do
-				local tile = layer.data[y][x]
+				-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
+				local tile
+				if chunk then
+					tile = chunk.data[y][x]
+				else
+					tile = layer.data[y][x]
+				end
 
 				if tile then
-					self:addNewLayerTile(layer, tile, x, y)
+					self:addNewLayerTile(layer, chunk, tile, x, y)
 				end
 			end
 		end
 	else
-		local sideLen = self.hexsidelength or 0
-
 		if self.staggeraxis == "y" then
-			for y = 1, layer.height do
-				for x = 1, layer.width do
-					local tile = layer.data[y][x]
+			for y = 1, (chunk and chunk.height or layer.height) do
+				for x = 1, (chunk and chunk.width or layer.width) do
+					-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
+					local tile
+					if chunk then
+						tile = chunk.data[y][x]
+					else
+						tile = layer.data[y][x]
+					end
 
 					if tile then
-						self:addNewLayerTile(layer, tile, x, y)
+						self:addNewLayerTile(layer, chunk, tile, x, y)
 					end
 				end
 			end
@@ -496,16 +558,23 @@ function Map:setSpriteBatches(layer)
 				_x = 2
 			end
 
-			while i < layer.width * layer.height do
-				for _y = 1, layer.height + 0.5, 0.5 do
+			while i < (chunk and chunk.width * chunk.height or layer.width * layer.height) do
+				for _y = 1, (chunk and chunk.height or layer.height) + 0.5, 0.5 do
 					local y = floor(_y)
 
-					for x = _x, layer.width, 2 do
+					for x = _x, (chunk and chunk.width or layer.width), 2 do
 						i = i + 1
-						local tile = layer.data[y][x]
+
+						-- NOTE: Cannot short circuit this since it is valid for tile to be assigned nil
+						local tile
+						if chunk then
+							tile = chunk.data[y][x]
+						else
+							tile = layer.data[y][x]
+						end
 
 						if tile then
-							self:addNewLayerTile(layer, tile, x, y)
+							self:addNewLayerTile(layer, chunk, tile, x, y)
 						end
 					end
 
@@ -520,12 +589,23 @@ function Map:setSpriteBatches(layer)
 	end
 end
 
+--- Batch Tiles in Tile Layer for improved draw speed
+-- @param layer The Tile Layer
+function Map:setSpriteBatches(layer)
+	if layer.chunks then
+		for _, chunk in ipairs(layer.chunks) do
+			self:set_batches(layer, chunk)
+		end
+		return
+	end
+
+	self:set_batches(layer)
+end
+
 --- Batch Tiles in Object Layer for improved draw speed
 -- @param layer The Object Layer
 function Map:setObjectSpriteBatches(layer)
 	local newBatch = lg.newSpriteBatch
-	local tileW    = self.tilewidth
-	local tileH    = self.tileheight
 	local batches  = {}
 
 	if layer.draworder == "topdown" then
@@ -538,33 +618,44 @@ function Map:setObjectSpriteBatches(layer)
 		if object.gid then
 			local tile    = self.tiles[object.gid] or self:setFlippedGID(object.gid)
 			local tileset = tile.tileset
-			local image   = self.tilesets[tile.tileset].image
+			local image   = self.tilesets[tileset].image
 
 			batches[tileset] = batches[tileset] or newBatch(image)
 
-			local sx =  object.width / tile.width 
-			local sy =  object.height / tile.height
+			local sx = object.width  / tile.width
+			local sy = object.height / tile.height
+
+			-- Tiled rotates around bottom left corner, where love2D rotates around top left corner
+			local ox = 0
+			local oy = tile.height
 
 			local batch = batches[tileset]
 			local tileX = object.x + tile.offset.x
-			local tileY = object.y + tile.offset.y - tile.height * sy
+			local tileY = object.y + tile.offset.y
 			local tileR = math.rad(object.rotation)
-			local oy    = 0
 
 			-- Compensation for scale/rotation shift
-			if tile.sx == 1 and tile.sy == 1 then
+			if tile.sx == -1 then
+				tileX = tileX + object.width
+
 				if tileR ~= 0 then
-					tileY = tileY + tileH
-					oy    = tileH
+					tileX = tileX - object.width
+					ox = ox + tile.width
 				end
-			else
-				if tile.sx < 0 then tileX = tileX + tileW end
-				if tile.sy < 0 then tileY = tileY + tileH end
-				if tileR   > 0 then tileX = tileX + tileW end
-				if tileR   < 0 then tileY = tileY + tileH end
 			end
 
-			local tab = {
+			if tile.sy == -1 then
+				tileY = tileY - object.height
+
+				if tileR ~= 0 then
+					tileY = tileY + object.width
+					oy = oy - tile.width
+				end
+			end
+
+			local instance = {
+				id    = batch:add(tile.quad, tileX, tileY, tileR, tile.sx * sx, tile.sy * sy, ox, oy),
+				batch = batch,
 				layer = layer,
 				gid   = tile.gid,
 				x     = tileX,
@@ -573,13 +664,8 @@ function Map:setObjectSpriteBatches(layer)
 				oy    = oy
 			}
 
-			if batch then
-				tab.batch = batch
-				tab.id = batch:add(tile.quad, tileX, tileY, tileR, tile.sx * sx, tile.sy * sy, 0, oy)
-			end
-
 			self.tileInstances[tile.gid] = self.tileInstances[tile.gid] or {}
-			table.insert(self.tileInstances[tile.gid], tab)
+			table.insert(self.tileInstances[tile.gid], instance)
 		end
 	end
 
@@ -622,6 +708,7 @@ function Map:convertToCustomLayer(index)
 	layer.height   = nil
 	layer.encoding = nil
 	layer.data     = nil
+	layer.chunks   = nil
 	layer.objects  = nil
 	layer.image    = nil
 
@@ -632,7 +719,7 @@ function Map:convertToCustomLayer(index)
 end
 
 --- Remove a Layer from the Layer stack
--- @param index Index or name of Layer to convert
+-- @param index Index or name of Layer to remove
 function Map:removeLayer(index)
 	local layer = assert(self.layers[index], "Layer not found: " .. index)
 
@@ -650,12 +737,24 @@ function Map:removeLayer(index)
 		self.layers[name] = nil
 	end
 
-	-- Remove tile instances
+	-- Remove layer batches
 	if layer.batches then
 		for _, batch in pairs(layer.batches) do
 			self.freeBatchSprites[batch] = nil
 		end
+	end
 
+	-- Remove chunk batches
+	if layer.chunks then
+		for _, chunk in ipairs(layer.chunks) do
+			for _, batch in pairs(chunk.batches) do
+				self.freeBatchSprites[batch] = nil
+			end
+		end
+	end
+
+	-- Remove tile instances
+	if layer.type == "tilelayer" then
 		for _, tiles in pairs(self.tileInstances) do
 			for i = #tiles, 1, -1 do
 				local tile = tiles[i]
@@ -761,6 +860,17 @@ function Map:drawTileLayer(layer)
 
 	assert(layer.type == "tilelayer", "Invalid layer type: " .. layer.type .. ". Layer must be of type: tilelayer")
 
+	-- NOTE: This does not take into account any sort of draw range clipping and will always draw every chunk
+	if layer.chunks then
+		for _, chunk in ipairs(layer.chunks) do
+			for _, batch in pairs(chunk.batches) do
+				lg.draw(batch, floor(chunk.x * self.tilewidth), floor(chunk.y * self.tileheight))
+			end
+		end
+
+		return
+	end
+
 	for _, batch in pairs(layer.batches) do
 		lg.draw(batch, floor(layer.x), floor(layer.y))
 	end
@@ -826,6 +936,8 @@ function Map:drawObjectLayer(layer)
 			drawShape(object.polygon, "polygon")
 		elseif object.shape == "polyline" then
 			drawShape(object.polyline, "polyline")
+		elseif object.shape == "point" then
+			lg.points(object.x, object.y)
 		end
 	end
 
@@ -1050,16 +1162,14 @@ function Map:swapTile(instance, tile)
 				0,
 				0)
 
-			self.freeBatchSprites[instance.batch] =
-				self.freeBatchSprites[instance.batch] or {}
-
+			self.freeBatchSprites[instance.batch] = self.freeBatchSprites[instance.batch] or {}
 			table.insert(self.freeBatchSprites[instance.batch], instance)
 		end
 	end
 
 	-- Remove old tile instance
 	for i, ins in ipairs(self.tileInstances[instance.gid]) do
-		if  ins.batch == instance.batch and ins.id == instance.id then
+		if ins.batch == instance.batch and ins.id == instance.id then
 			table.remove(self.tileInstances[instance.gid], i)
 			break
 		end

@@ -1,18 +1,15 @@
 --- Bump.lua plugin for STI
 -- @module bump.lua
 -- @author David Serrano (BobbyJones|FrenchFryLord)
--- @copyright 2016
+-- @copyright 2019
 -- @license MIT/X11
 
 local lg = require((...):gsub('plugins.bump', 'graphics'))
 
-local wrappers = {}
-local bump_world = nil
-
 return {
 	bump_LICENSE        = "MIT/X11",
 	bump_URL            = "https://github.com/karai17/Simple-Tiled-Implementation",
-	bump_VERSION        = "3.1.6.1",
+	bump_VERSION        = "3.1.7.0",
 	bump_DESCRIPTION    = "Bump hooks for STI.",
 
 	--- Adds each collidable tile to the Bump world.
@@ -20,7 +17,6 @@ return {
 	-- @return collidables table containing the handles to the objects in the Bump world.
 	bump_init = function(map, world)
 		local collidables = {}
-        bump_world = world
 
 		for _, tileset in ipairs(map.tilesets) do
 			for _, tile in ipairs(tileset.tiles) do
@@ -33,6 +29,8 @@ return {
 							for _, object in ipairs(tile.objectGroup.objects) do
 								if object.properties.collidable == true then
 									local t = {
+										name       = object.name,
+										type       = object.type,
 										x          = instance.x + map.offsetx + object.x,
 										y          = instance.y + map.offsety + object.y,
 										width      = object.width,
@@ -42,7 +40,6 @@ return {
 
 									}
 
-                                    wrappers[object] = t
 									world:add(t, t.x, t.y, t.width, t.height)
 									table.insert(collidables, t)
 								end
@@ -60,7 +57,6 @@ return {
 								properties = tile.properties
 							}
 
-                            wrappers[tile] = t
 							world:add(t, t.x, t.y, t.width, t.height)
 							table.insert(collidables, t)
 						end
@@ -80,6 +76,8 @@ return {
 								for _, object in ipairs(tile.objectGroup.objects) do
 									if object.properties.collidable == true then
 										local t = {
+											name       = object.name,
+											type       = object.type,
 											x          = ((x-1) * map.tilewidth  + tile.offset.x + map.offsetx) + object.x,
 											y          = ((y-1) * map.tileheight + tile.offset.y + map.offsety) + object.y,
 											width      = object.width,
@@ -88,7 +86,6 @@ return {
 											properties = object.properties
 										}
 
-                                        wrappers[object] = t
 										world:add(t, t.x, t.y, t.width, t.height)
 										table.insert(collidables, t)
 									end
@@ -105,7 +102,6 @@ return {
 								properties = tile.properties
 							}
 
-                            wrappers[tile] = t
 							world:add(t, t.x, t.y, t.width, t.height)
 							table.insert(collidables, t)
 						end
@@ -123,6 +119,8 @@ return {
 					if layer.properties.collidable == true or obj.properties.collidable == true then
 						if obj.shape == "rectangle" then
 							local t = {
+								name       = obj.name,
+								type       = obj.type,
 								x          = obj.x + map.offsetx,
 								y          = obj.y + map.offsety,
 								width      = obj.width,
@@ -131,12 +129,10 @@ return {
 								properties = obj.properties
 							}
 
-                            -- PNH: what the hell?
 							if obj.gid then
 								t.y = t.y - obj.height
 							end
 
-                            wrappers[obj] = t
 							world:add(t, t.x, t.y, t.width, t.height)
 							table.insert(collidables, t)
 						end -- TODO implement other object shapes?
@@ -190,15 +186,7 @@ return {
 		end
 
 		lg.pop()
-	end,
-
-    -- PNH: we added this so we could work around STI shenanigans and actually
-    -- perform operations on the world directly. STI wraps each object in a
-    -- table before adding it to the bump world, so we look up the object in
-    -- the wrapper mapping before handing off to bump.
-    bump_wrap = function(method, object, ...)
-       return bump_world[method](bump_world, wrappers[object], ...)
-    end,
+	end
 }
 
 --- Custom Properties in Tiled are used to tell this plugin what to do.
